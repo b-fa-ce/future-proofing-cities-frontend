@@ -38,9 +38,18 @@ df = geopandas.read_file(in_path)
 
 # map locations -> update here
 if city == 'Paris':
-    map = folium.Map(location=[48.864716, 2.349014], zoom_start=10, tiles='CartoDB positron', control_scale=True)
+    map = folium.Map(location=[48.864716, 2.349014],
+                     width =1000,
+                    height=500,
+                     zoom_start=13,
+                     tiles='CartoDB positron',
+                     control_scale=True,
+                     )
 else:
-    map = folium.Map(location=[52.5200, 13.4050], zoom_start=10, tiles = 'CartoDB positron', control_scale=True)
+    map = folium.Map(location=[52.5200, 13.4050],
+                     zoom_start=15,
+                     tiles = 'CartoDB positron',
+                     control_scale=True)
 
 def getting_min_max():
     data_n = df[['LST_diff']]
@@ -56,21 +65,19 @@ def map_color(heat):
     # print(getting_max_min())
     global min_lst, max_lst, n
     if min_lst < heat < min_lst + n:
-        return '#076cf5'
+        return '#080cfc'
     elif min_lst + n <= heat < min_lst + 2 * n:
-        return '#4d97fa'
+        return '#b8cffc'
     elif min_lst + 2 * n <= heat < min_lst + 3 * n:
         return '#fcce58'
     elif min_lst + 3 * n <= heat < min_lst + 4 * n:
-        return '#fca558'
-    elif min_lst + 4 * n <= heat < min_lst + 5 * n:
-        return '#fa6220'
+        return '#b8e2fc'
     else:
-        return '#f70505'
+        return '#ff0000'
 
 
 min_lst, max_lst = getting_min_max()
-n = (max_lst - min_lst) / 6
+n = (max_lst - min_lst) / 5
 # add tiles to map
 for iteration, r in df.iterrows():
     sim_geo = geopandas.GeoSeries(r['geometry']).simplify(tolerance=0.002)
@@ -89,9 +96,9 @@ plugins.Fullscreen(position='topright').add_to(map)
 
 # add legend -> update
 step = cmp.StepColormap(
- ['#076cf5', '#4d97fa', '#fcce58', '#fca558', '#fa6220', '#f70505'],
+ ['#080cfc', '#b8cffc', '#fcce58', '#b8e2fc', '#ff0000'],
  vmin=min_lst, vmax=max_lst,
- index=[min_lst, min_lst + 2 * n, min_lst + 3 * n, min_lst + 4 * n, min_lst + 5 * n  , max_lst],  #for change in the colors, not used fr linear
+ index=[min_lst, min_lst + 2 * n, min_lst + 3 * n, min_lst + 4 * n, max_lst],  #for change in the colors, not used fr linear
  caption='Color Scale for Map'    #Caption for Color scale or Legend
 )
 # step
