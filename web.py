@@ -1,24 +1,20 @@
 import streamlit as st
-# import json
 import requests
 import geopandas
-# import pyproj
-# import plotly.graph_objs as go
-# import pandas as pd
+import pandas as pd
 from folium import plugins
-# from folium.plugins import HeatMap
 import folium
 from streamlit_folium import st_folium
-# import fiona
 # from shapely.geometry import shape
 import numpy as np
 # from shapely.geometry import Polygon
 from branca.colormap import linear
-
+import branca.colormap as cmp
 import os
 
 INPUT_PATH = os.path.join('..','future_proofing_cities','data','predicted_data')
 LOCAL_URL = 'http://localhost:8888/predict_city'
+#
 CLOUD_URL = ''
 
 ### Streamlit app ###
@@ -31,8 +27,6 @@ st.text('This is a web app to allow find heat islands in different cities')
 
 # cities to select
 city = st.selectbox("Type input city", ['Paris','Berlin']) # 'Brussels', 'London',
-
-print(city)
 
 # GET request runs prediction in background and exports geojson
 params ={'city': city}
@@ -48,30 +42,39 @@ df = geopandas.read_file(in_path)
 
 # map locations -> update here
 if city == 'Paris':
-    map = folium.Map(location=[48.864716, 2.349014], zoom_start=10, tiles='CartoDB positron')
-elif city == 'Brussels':
-    map = folium.Map(location=[50.8476, 4.3572], tiles = 'CartoDB positron', zoom_start=10, max_val=5.0, control_scale=True)
-elif city == 'London':
-    map = folium.Map(location=[51.5072, 0.1276], tiles = 'CartoDB positron', zoom_start=10, max_val=5.0, control_scale=True)
+    map = folium.Map(location=[48.864716, 2.349014], zoom_start=10, tiles='CartoDB positron', control_scale=True)
 else:
-    map = folium.Map(location=[52.5200, 13.4050], tiles = 'CartoDB positron', zoom_start=10, max_val=5.0, control_scale=True)
+    map = folium.Map(location=[52.5200, 13.4050], zoom_start=10, tiles = 'CartoDB positron', control_scale=True)
+
+def getting_min_max():
+    data_n = df[['LST_diff']]
+    min_number = data_n.min()
+    max_number = data_n.max()
+    min_number = min_number.item()
+    max_number = max_number.item()
+    return  min_number, max_number
 
 
 # update to more colors in range of T
 def map_color(heat):
-    if -0.95 < heat < -0.5:
+    # print(getting_max_min())
+    global min_lst, max_lst, n
+    if min_lst < heat < min_lst + n:
         return '#076cf5'
-    elif -0.5 <= heat < 0:
+    elif min_lst + n <= heat < min_lst + 2 * n:
         return '#4d97fa'
-    elif 0 <= heat < 0.5:
+    elif min_lst + 2 * n <= heat < min_lst + 3 * n:
         return '#fcce58'
-    elif 0.5 <= heat < 1:
+    elif min_lst + 3 * n <= heat < min_lst + 4 * n:
         return '#fca558'
-    elif 1 <= heat < 1.5:
+    elif min_lst + 4 * n <= heat < min_lst + 5 * n:
         return '#fa6220'
     else:
         return '#f70505'
 
+
+min_lst, max_lst = getting_min_max()
+n = (max_lst - min_lst) / 6
 # add tiles to map
 for iteration, r in df.iterrows():
     sim_geo = geopandas.GeoSeries(r['geometry']).simplify(tolerance=0.002)
@@ -80,16 +83,26 @@ for iteration, r in df.iterrows():
     geo_j = folium.GeoJson(data=geo_j,
                         style_function=lambda x,
                         heat_value=heat_value: {'fillColor': map_color(heat_value)})
+
     folium.Popup(r['LST_diff']).add_to(geo_j)
     geo_j.add_to(map)
 
-# add legend -> update
-count_colormap = linear.RdBu_09.scale(min(df['LST_diff']),
-                                            max(df['LST_diff']))
-count_colormap.add_to(map)
 
 # full scree mode option
 plugins.Fullscreen(position='topright').add_to(map)
 
+# add legend -> update
+step = cmp.StepColormap(
+ ['#076cf5', '#4d97fa', '#fcce58', '#fca558', '#fa6220', '#f70505'],
+ vmin=min_lst, vmax=max_lst,
+ index=[min_lst, min_lst + 2 * n, min_lst + 3 * n, min_lst + 4 * n, min_lst + 5 * n  , max_lst],  #for change in the colors, not used fr linear
+ caption='Color Scale for Map'    #Caption for Color scale or Legend
+)
+# step
+step.add_to(map)
+
 # print map on website
 st_folium(map)
+
+# add balloons)
+st.balloons()
