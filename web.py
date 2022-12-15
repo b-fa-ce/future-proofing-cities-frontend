@@ -32,13 +32,11 @@ city = st.selectbox("Type input city", ['Paris','Berlin']) # 'Brussels', 'London
 params ={'city': city}
 response = requests.get(LOCAL_URL, params=params)
 
-# test_gdf = geopandas.GeoDataFrame.from_features(response.json()['gdf'])
-
-# test_gdf = geopandas.read_file(response.json()['gdf'], driver = 'GeoJSON')
+df = geopandas.read_file(response.json()['gdf'], driver = 'GeoJSON')
 
 # import geojson
-in_path = os.path.join(INPUT_PATH, city, f'{city}_viz.geojson')
-df = geopandas.read_file(in_path)
+# in_path = os.path.join(INPUT_PATH, city, f'{city}_viz.geojson')
+# df = geopandas.read_file(in_path)
 
 # map locations -> update here
 if city == 'Paris':
