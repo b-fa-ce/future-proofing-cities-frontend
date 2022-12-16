@@ -7,3 +7,5 @@ plotly
 folium
 streamlit_folium
 branca
+ipython
+jupyter
