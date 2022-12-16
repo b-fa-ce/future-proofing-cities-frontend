@@ -1,10 +1,8 @@
 import streamlit as st
-import requests
-import os
+from streamlit_folium import st_folium
 
-from utils import display_map
+from utils import display_map, get_request
 
-INPUT_PATH = os.path.join('..','future_proofing_cities','data','predicted_data')
 LOCAL_URL = 'http://localhost:8000/predict_city'
 #
 CLOUD_URL = ''
@@ -21,11 +19,12 @@ st.title('Predicted heat distribution')
 st.text('This is a web app to allow find heat islands in different cities')
 
 # cities to select
-city = st.selectbox("Type input city", CITIES)
+city = st.selectbox("Select your city", ('Berlin','Paris'))
+print(city)
 
-# GET request runs prediction in background and exports geojson
-params ={'city': city}
-response = requests.get(LOCAL_URL, params=params)
+# API GET request
+response= get_request(city)
 
 # display map
-display_map(response=response)
+map = display_map(response=response)
+st_map = st_folium(map, width=700, height=500)

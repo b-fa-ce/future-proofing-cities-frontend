@@ -1,12 +1,19 @@
 import numpy as np
 import folium
 import geopandas
+import streamlit as st
+import requests
 from streamlit_folium import st_folium
 import branca.colormap as cmp
-import json
+import json, os
 
 CITIES = ['Paris','Berlin']
 CITY_CENTER = {'Paris': [48.864716, 2.349014], 'Berlin': [52.5200, 13.4050]}
+
+INPUT_PATH = os.path.join('..','future_proofing_cities','data','predicted_data')
+LOCAL_URL = 'http://localhost:8000/predict_city'
+#
+CLOUD_URL = ''
 
 
 def linear_cm(lst_min, lst_max):
@@ -72,9 +79,15 @@ def display_map(response: dict):
       # full scree mode option
     folium.plugins.Fullscreen(position='topleft').add_to(map)
 
-    st_map = st_folium(map, width=700, height=500)
+    return map
+    # st_map = st_folium(map, width=700, height=500)
 
-    # state_name = ''
-    # if st_map['last_active_drawing']:
-    #     state_name = st_map['last_active_drawing']['properties']['LST_diff']
-    # return state_name
+# GET request runs prediction in background and exports geojson
+@st.cache
+def get_request(city: str):
+    """
+    GET request runs prediction in background and exports geojson
+    """
+    params ={'city': city}
+    response = requests.get(LOCAL_URL, params=params)
+    return response
