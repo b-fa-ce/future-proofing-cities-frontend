@@ -25,13 +25,9 @@ def display_map(response: dict):
     json_response = response.json()
     city = json_response['city']
 
-    print(f'{city}: ', json_response['gdf'])
-
     # read gdf
     gdf = geopandas.read_file(json_response['gdf'], driver = 'GeoJSON', dtypes = 'float64')
     gdf['id'] = gdf['id'].astype('int')
-
-    print(gdf.info())
 
     geo_json = json.loads(json_response['gdf'])
 
@@ -53,7 +49,6 @@ def display_map(response: dict):
 
         geo = geopandas.GeoSeries(row['geometry'])
         heat_value = row['LST_diff']
-        print(geo, heat_value)
 
         geo_json = geo.to_json()
 
