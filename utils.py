@@ -3,11 +3,9 @@ import folium
 import geopandas
 import streamlit as st
 import requests
-from streamlit_folium import st_folium
 import branca.colormap as cmp
 import json, os
 
-CITIES = ['Paris','Berlin']
 CITY_CENTER = {'Paris': [48.864716, 2.349014], 'Berlin': [52.5200, 13.4050]}
 
 INPUT_PATH = os.path.join('..','future_proofing_cities','data','predicted_data')
@@ -48,7 +46,7 @@ def display_map(response: dict):
 
 
     # linear cmap
-    linear = linear_cm(min(gdf['LST_diff']), np.quantile(gdf['LST_diff'],.9))
+    linear = linear_cm(np.quantile(gdf['LST_diff'],.01), np.quantile(gdf['LST_diff'],.95)) #min(gdf['LST_diff'])
 
 
 
@@ -83,7 +81,7 @@ def display_map(response: dict):
     # st_map = st_folium(map, width=700, height=500)
 
 # GET request runs prediction in background and exports geojson
-@st.cache
+@st.cache(persist=True)
 def get_request(city: str):
     """
     GET request runs prediction in background and exports geojson
@@ -91,3 +89,7 @@ def get_request(city: str):
     params ={'city': city}
     response = requests.get(LOCAL_URL, params=params)
     return response
+
+@st.cache
+def get_city(input):
+    return input
